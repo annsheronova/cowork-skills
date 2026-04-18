@@ -21,6 +21,14 @@ Restart Cowork after install. The skills will appear in your sidebar and trigger
 
 ## Skills
 
+### [meeting-prep](./skills/meeting-prep/) (v0.1.0)
+
+Generates a one-page prep note for each of your upcoming calendar meetings. Pulls the event from Google Calendar, looks up recent Gmail history per attendee, adds a light public-context bio for external attendees, and writes one Notion page per meeting in a BLUF-first template (At a glance → Attendees → Recent context → Likely agenda → exactly three talking points → optional watch-outs). Fits on one screen. Supports an optional daily 7:30am weekday scheduled run. Full docs in [skills/meeting-prep/README.md](./skills/meeting-prep/README.md).
+
+**Prerequisites:** Google Calendar MCP (required), Gmail + Notion + web search (recommended; degrades gracefully when missing).
+
+**Trigger phrases:** "prep for my meeting", "brief me on today's meetings", "who am I meeting with today", "run my morning briefing", "meeting prep note".
+
 ### [threads-collector](./skills/threads-collector/) (v0.4.0)
 
 Scrolls Threads (threads.com) via the Claude-in-Chrome extension. Collects high-engagement posts into a session CSV with a single likes-only gate at scroll time, then evaluates each one in three sequential passes — hook pattern match, relevance score (1–100), primary/secondary topic. Renders the top 10 posts inline, plus any new topics and new hook patterns discovered during the run.
@@ -57,6 +65,16 @@ cowork-skills/
 │   ├── plugin.json             ← plugin manifest
 │   └── marketplace.json        ← marketplace entry (lets the repo be added as a source)
 ├── skills/
+│   ├── meeting-prep/
+│   │   ├── SKILL.md            ← workflow: Calendar → Gmail → web → Notion
+│   │   ├── README.md           ← user-facing docs
+│   │   ├── references/
+│   │   │   ├── prep-note-template.md   ← output structure
+│   │   │   ├── scheduling.md           ← morning scheduled-task setup
+│   │   │   └── fallbacks.md            ← what to do when an MCP is missing
+│   │   └── evals/
+│   │       ├── evals.json              ← fixture-based test suite
+│   │       └── fixtures/               ← mock Calendar/Gmail/web data per case
 │   └── threads-collector/
 │       ├── SKILL.md            ← thin orchestrator (steps 0–6)
 │       ├── README.md           ← user-facing docs

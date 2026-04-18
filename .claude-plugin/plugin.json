@@ -1,12 +1,22 @@
 {
   "name": "cowork-skills",
-  "version": "0.4.0",
-  "description": "Anna's personal collection of Cowork skills. Currently ships threads-collector (scroll-then-evaluate: collects 100 high-engagement posts, scores relevance 1-100, matches against a growing hook playbook and topic list). Grows over time.",
+  "version": "0.5.0",
+  "description": "Anna's personal collection of Cowork skills. Ships two skills: meeting-prep (one-page Notion briefing per upcoming calendar meeting with attendee context from Gmail + web search) and threads-collector (scroll-then-evaluate capture of high-engagement Threads posts into a growing hook playbook and topic library). Grows over time.",
   "author": {
     "name": "Anna Sheronova",
     "email": "ann.sheronova@gmail.com"
   },
   "repository": "https://github.com/annsheronova/cowork-skills",
   "license": "MIT",
-  "keywords": ["threads", "social-media", "trendwatching", "content-research"]
+  "keywords": [
+    "meeting-prep",
+    "calendar",
+    "briefing",
+    "notion",
+    "email",
+    "threads",
+    "social-media",
+    "trendwatching",
+    "content-research"
+  ]
 }

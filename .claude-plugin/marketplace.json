@@ -11,7 +11,7 @@
     {
       "name": "cowork-skills",
       "source": "./",
-      "description": "Currently ships threads-collector (scrolls Threads and catches posts matching user-defined criteria). More skills will be added over time.",
+      "description": "Currently ships meeting-prep (one-page Notion briefings for upcoming calendar meetings) and threads-collector (capture and evaluate high-engagement Threads posts). More skills will be added over time.",
       "homepage": "https://github.com/annsheronova/cowork-skills"
     }
   ]
