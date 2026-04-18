@@ -1,0 +1,29 @@
+{
+  "skill_name": "meeting-prep",
+  "evals": [
+    {
+      "id": 1,
+      "name": "external-rich-context",
+      "prompt": "Generate a meeting prep note for today's 2pm meeting with Acme. Assume the Google Calendar, Gmail, Notion, and web-search MCP steps have already been run and their results are in the attached fixture file. You don't need to call any MCPs — use the fixture as your input. Output the prep note as a markdown file called prep-note.md in the outputs folder, matching the Notion page structure the skill prescribes.",
+      "expected_output": "A one-page markdown prep note following the skill's template — BLUF At-a-glance section first, attendees with per-person context, recent context bullets, likely agenda, exactly three talking points, optional watch-outs. Should surface the pilot-slip context and Alex's stated preference for firm dates.",
+      "files": ["evals/fixtures/eval-1-external-rich-context.md"],
+      "assertions": []
+    },
+    {
+      "id": 2,
+      "name": "mixed-internal-external",
+      "prompt": "Generate a meeting prep note for the 10am Q2 partnership review. Treat the attached fixture as the output of Calendar/Gmail/Notion/web-search tool calls. Output prep-note.md in the outputs folder using the skill's Notion-page structure. The user's company domain is nutripy.com — distinguish internal from external attendees accordingly.",
+      "expected_output": "Prep note where external attendees (Marco, Sofia) get fuller treatment than internal attendees (Tom, Lisa). Should flag Sofia as new-to-us and Marco's request for better unit economics. Three talking points.",
+      "files": ["evals/fixtures/eval-2-mixed-attendees.md"],
+      "assertions": []
+    },
+    {
+      "id": 3,
+      "name": "cold-meeting-no-email-history",
+      "prompt": "Generate a meeting prep note for the 4:30pm intro call with Jamie Okafor from Finch Capital. Use the attached fixture as the output of the tool calls. Output prep-note.md. There's no email history — handle that gracefully.",
+      "expected_output": "Prep note that acknowledges the zero email history (doesn't fabricate one), uses the web research to build Jamie's bio, infers a plausible agenda from the intro framing, and suggests talking points appropriate for a first VC intro.",
+      "files": ["evals/fixtures/eval-3-cold-meeting.md"],
+      "assertions": []
+    }
+  ]
+}
