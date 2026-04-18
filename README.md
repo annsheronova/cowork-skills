@@ -1,46 +1,53 @@
 # cowork-skills
 
-A personal collection of Claude Cowork skills. Each subdirectory is a standalone skill with its own `SKILL.md`, config, and documentation.
+A Claude Cowork plugin — Anna's personal collection of skills. Installs into Cowork as a single plugin; new skills join this plugin over time.
 
-## Install (one command)
+## Install
 
-Run this in your Mac's Terminal:
+In Claude Cowork: **Customize → Plugins → Add plugin → GitHub**, and paste:
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/annsheronova/cowork-skills/main/install.sh | bash
+```
+https://github.com/annsheronova/cowork-skills
 ```
 
-This clones the repo into `~/.claude/skills/cowork-skills/`, symlinks each skill so Cowork discovers it, and seeds runtime config files under `~/cowork/<skill-name>/`. Safe to re-run any time — it pulls updates and never clobbers your edited configs.
+Cowork clones, validates, and installs the plugin. All skills below become available in your sidebar automatically. Start a fresh Cowork session after install.
 
-After install, open the per-skill README below and finish any config steps that skill needs, then start a fresh Cowork session.
+> For private repo installs, make sure the GitHub account connected to your Cowork is granted read access to the repo.
 
-## Skills in this repo
+## Skills included
 
-### [threads-collector](./threads-collector/)
+### threads-collector
 
-Scrolls Threads (threads.com) via the Claude-in-Chrome extension and catches posts that match user-defined criteria. Produces a structured CSV library plus individual markdown files per post, with automatic classification by category, template type, and hook type. Ships with a Q1 2026 Threads-specific hook pattern catalog that grows with each run.
+Scrolls Threads (threads.com) via the Claude-in-Chrome extension and catches posts matching user-defined criteria. Produces a structured CSV library plus individual markdown files per caught post, classified by category, template type, and hook type. Ships with a Q1 2026 Threads-specific hook pattern catalog that grows with each run.
 
-**After install**, edit `~/cowork/threads-collector/config.md` and fill in `my_topics`. See [threads-collector/README.md](./threads-collector/README.md) for prerequisites and usage.
+**First run:** the skill bootstraps your editable config at `~/cowork/threads-collector/config.md` from the packaged template. Fill in `my_topics` before doing a real run. See [skills/threads-collector/README.md](./skills/threads-collector/README.md) for full usage.
 
-## Manual install (if you'd rather not pipe curl to bash)
+**Triggers:** say "collect threads", "catch threads posts", "run the threads collector".
 
-```bash
-mkdir -p ~/.claude/skills
-cd ~/.claude/skills
-git clone https://github.com/annsheronova/cowork-skills.git
-bash cowork-skills/install.sh
+## Repository layout
+
 ```
-
-The `install.sh` script is idempotent — you can read it first at [install.sh](./install.sh), then run it.
+cowork-skills/
+├── .claude-plugin/
+│   └── plugin.json       Plugin manifest
+├── skills/
+│   └── threads-collector/
+│       ├── SKILL.md      Skill definition
+│       ├── config.md     Runtime config template
+│       ├── hook_patterns.md   Seeded Q1 2026 catalog
+│       └── README.md     Per-skill docs
+└── README.md             This file
+```
 
 ## Adding a new skill
 
-Create a new top-level folder. Minimum contents:
+Create a new folder at `skills/<skill-name>/` with at minimum:
+- `SKILL.md` — YAML frontmatter (`name`, `description`) + instructions body
+- `README.md` — usage, prerequisites, troubleshooting
+- Any config templates or supporting files the skill needs
 
-- `SKILL.md` — the skill definition with YAML frontmatter (`name`, `description`) and the full instructions body.
-- `README.md` — install instructions, prerequisites, troubleshooting.
-- Any config templates, reference data, or supporting files the skill needs.
+Bump `version` in `.claude-plugin/plugin.json`, push, and Cowork users get the new skill on next plugin update.
 
 ## License
 
-Personal use. No warranty, no support commitments.
+MIT.
