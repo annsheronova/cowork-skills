@@ -3,7 +3,7 @@ name: threads-collector
 description: Scrolls Threads (threads.com) via Chrome, collects high-engagement posts into a session CSV, then evaluates each one against the user's hook playbook, relevance, and topics. On first run, walks the user through a 6-question interview (intent, topics, surface, strictness, handle, context). Ships with a seeded hook pattern playbook and a topics list that grow through use. Renders top-10 posts inline in chat with new topics and new hook patterns extracted from the run. Use when user says "collect threads", "catch threads posts", "run threads collector", "swipe threads", "grab threads posts", "collect threads content", "watch threads trending", "catch trending threads posts", or similar. Supports For You, Following, Search, Profile, and Trending surfaces. No API used — pure Chrome automation.
 ---
 
-# Threads Collector (v0.4.0)
+# Threads Collector (v0.5.0)
 
 Two-phase workflow: **scroll fast, evaluate deeply**. Scroll only filters on a likes threshold — cheap DOM work. All topic matching, relevance scoring, and hook pattern classification happens after collection, in three sequential evaluation passes over the session CSV.
 
@@ -11,11 +11,11 @@ Two-phase workflow: **scroll fast, evaluate deeply**. Scroll only filters on a l
 
 Load these only when the step below says to. Each is a focused instruction for one phase.
 
-- **`scroll-extraction.md`** — DOM selectors, per-post fields, likes-only gate. Load at Step 4.
-- **`eval-hook-pattern.md`** — hook pattern matching + proposing new patterns. Load at Step 5a.
-- **`eval-relevance.md`** — relevance scoring 1–100. Load at Step 5b.
-- **`eval-topic.md`** — primary/secondary topic assignment + proposing new topics. Load at Step 5c.
-- **`output-rendering.md`** — session CSV schema, inline report, Save gate. Load at Step 6.
+- **`references/scroll-extraction.md`** — DOM selectors, per-post fields, likes-only gate. Load at Step 4.
+- **`references/eval-hook-pattern.md`** — hook pattern matching + proposing new patterns. Load at Step 5a.
+- **`references/eval-relevance.md`** — relevance scoring 1–100. Load at Step 5b.
+- **`references/eval-topic.md`** — primary/secondary topic assignment + proposing new topics. Load at Step 5c.
+- **`references/output-rendering.md`** — session CSV schema, inline report, Save gate. Load at Step 6.
 
 ## Persistent files in `<runtime_folder>`
 
@@ -49,7 +49,7 @@ Stop immediately if any check fails.
    - Else → `request_cowork_directory` with phrasing: "This skill stores your config and each session's results inside a folder on your computer. Pick one (a dedicated folder works well). Re-open the same folder each run so your topics list and hook playbook accumulate."
 3. Bootstrap `<runtime_folder>` idempotently (seed only if absent, never overwrite):
    - Create `sessions/` directory.
-   - Copy the plugin's bundled `hook_patterns.md`, `topics.md`, `user_context.md` to `<runtime_folder>/` if they don't exist.
+   - Copy the plugin's bundled `assets/hook_patterns.md`, `assets/topics.md`, `assets/user_context.md` to `<runtime_folder>/` (dropping the `assets/` prefix in the destination) if the destination files don't exist.
 
 ### Step 1 — Configure via interview (first run) or quick confirm (returning user)
 
@@ -181,7 +181,7 @@ When done, go to Step 5 (evaluation runs over the combined session CSV).
 
 ### Step 4 — Scroll and capture
 
-**→ Load `scroll-extraction.md` now.**
+**→ Load `references/scroll-extraction.md` now.**
 
 Likes-only gate at scroll time. Every post that passes gets extracted and written to `<runtime_folder>/sessions/session-<timestamp>.csv`. Header row written on first append.
 
@@ -199,7 +199,7 @@ Pass each row of the session CSV through three sequential evaluations. Each pass
 
 #### Step 5a — Hook pattern match
 
-**→ Load `eval-hook-pattern.md` now.**
+**→ Load `references/eval-hook-pattern.md` now.**
 
 For each row: match against `hook_patterns.md` or propose a new pattern name. At end of pass: cluster proposed names; ≥3 occurrences → promote to `new_hook_patterns[]`; 1–2 occurrences → `hook_candidates[]`.
 
@@ -207,13 +207,13 @@ Writes `hook_pattern_id` or `hook_pattern_proposed` columns.
 
 #### Step 5b — Relevance scoring
 
-**→ Load `eval-relevance.md` now.**
+**→ Load `references/eval-relevance.md` now.**
 
 For each row: score 1–100 against `user_context.md` + `topics.md` + `primary_intent`. Writes `relevance` (integer) and `relevance_reason` (short sentence).
 
 #### Step 5c — Topic assignment
 
-**→ Load `eval-topic.md` now.**
+**→ Load `references/eval-topic.md` now.**
 
 For each row: assign `primary_topic` and optional `secondary_topic`. If no existing topic fits: `new_topic_proposed`. At end of pass: promote all proposed topics (no threshold) to `new_topics[]`.
 
@@ -221,7 +221,7 @@ Writes `primary_topic`, `secondary_topic`, `new_topic_proposed` columns.
 
 ### Step 6 — Report inline + Save gate
 
-**→ Load `output-rendering.md` now.**
+**→ Load `references/output-rendering.md` now.**
 
 Render directly in chat:
 1. Headline (one sentence — how many collected, whether target was hit).

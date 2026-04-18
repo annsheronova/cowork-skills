@@ -1,12 +1,11 @@
-# Threads Collector Skill (v0.5.0)
+# Threads Collector Skill (v0.4.0)
+
+> **Deprecated.** Kept for historical comparison. Use the current [`threads-collector`](../threads-collector/) instead — same behavior, skill-creator-compliant layout (`references/` + `assets/`).
+
 
 A Cowork skill that scrolls Threads (via the Claude-in-Chrome extension), collects high-engagement posts into a session CSV, then evaluates each one — matching against your hook playbook, scoring relevance, assigning topics. On-demand. No API. No config files to edit.
 
-## What v0.5.0 does differently from v0.4.0
-
-- **Skill-creator-compliant layout.** The skill now follows the standard anatomy: step-specific docs live under `references/`, bundled seed files under `assets/`. SKILL.md stays under 500 lines and points at the right file when a step needs it. Behavior is unchanged from v0.4.0 — only the folder structure moved.
-
-## Carried over from v0.4.0
+## What v0.4.0 does differently from v0.3.0
 
 - **Scroll is cheap, evaluation is deep.** Scroll-time filter is a single likes threshold. Everything else — topic, relevance, hook pattern — happens after collection in three sequential evaluation passes.
 - **Session CSVs, not a persistent library.** Each run writes to `sessions/session-<timestamp>.csv`. No cross-run dedup. What persists across runs: your topics list and hook playbook, both of which grow when you accept the Save gate.

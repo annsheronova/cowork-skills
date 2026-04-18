@@ -29,13 +29,17 @@ Generates a one-page prep note for each of your upcoming calendar meetings. Pull
 
 **Trigger phrases:** "prep for my meeting", "brief me on today's meetings", "who am I meeting with today", "run my morning briefing", "meeting prep note".
 
-### [threads-collector](./skills/threads-collector/) (v0.4.0)
+### [threads-collector](./skills/threads-collector/) (v0.5.0)
 
-Scrolls Threads (threads.com) via the Claude-in-Chrome extension. Collects high-engagement posts into a session CSV with a single likes-only gate at scroll time, then evaluates each one in three sequential passes — hook pattern match, relevance score (1–100), primary/secondary topic. Renders the top 10 posts inline, plus any new topics and new hook patterns discovered during the run.
+Scrolls Threads (threads.com) via the Claude-in-Chrome extension. Collects high-engagement posts into a session CSV with a single likes-only gate at scroll time, then evaluates each one in three sequential passes — hook pattern match, relevance score (1–100), primary/secondary topic. Renders the top 10 posts inline, plus any new topics and new hook patterns discovered during the run. Skill-creator-compliant layout: step docs under `references/`, bundled seed files under `assets/`.
 
 **First-run setup:** no config files to edit. Trigger the skill and it walks you through a 6-question interview (~1 minute) — intent, topics, surface, likes threshold, your handle, and a free-text context prompt for tuning relevance. Your topics list and hook playbook live in `<your folder>/threads-collector/` and grow on each run when you accept the Save gate. Session CSVs are scratch per run. Full docs in [skills/threads-collector/README.md](./skills/threads-collector/README.md).
 
 **Trigger phrases:** "collect threads", "catch threads posts", "run the threads collector".
+
+### [threads-collector-old](./skills/threads-collector-old/) (v0.4.0 — deprecated)
+
+The previous flat-layout version of threads-collector. Identical behavior. Kept for historical reference and side-by-side comparison of the two anatomies — do not install both at once; use the current `threads-collector` above.
 
 ## Updating
 
@@ -75,18 +79,32 @@ cowork-skills/
 │   │   └── evals/
 │   │       ├── evals.json              ← fixture-based test suite
 │   │       └── fixtures/               ← mock Calendar/Gmail/web data per case
-│   └── threads-collector/
-│       ├── SKILL.md            ← thin orchestrator (steps 0–6)
-│       ├── README.md           ← user-facing docs
-│       ├── config.md           ← bundled template; copied to runtime on first run
-│       ├── topics.md           ← seed topic list (grows per user)
-│       ├── user_context.md     ← free-text placeholder
-│       ├── hook_patterns.md    ← seeded flat-table hook playbook (grows per user)
-│       ├── scroll-extraction.md   ← step 4 reference
-│       ├── eval-hook-pattern.md   ← step 5a reference
-│       ├── eval-relevance.md      ← step 5b reference
-│       ├── eval-topic.md          ← step 5c reference
-│       └── output-rendering.md    ← step 6 reference
+│   ├── threads-collector/           ← current (skill-creator-compliant layout, v0.5.0)
+│   │   ├── SKILL.md            ← thin orchestrator (steps 0–6)
+│   │   ├── README.md           ← user-facing docs
+│   │   ├── references/         ← step-specific docs loaded on demand
+│   │   │   ├── scroll-extraction.md     ← step 4 reference
+│   │   │   ├── eval-hook-pattern.md     ← step 5a reference
+│   │   │   ├── eval-relevance.md        ← step 5b reference
+│   │   │   ├── eval-topic.md            ← step 5c reference
+│   │   │   └── output-rendering.md      ← step 6 reference
+│   │   └── assets/             ← bundled seed files (copied to runtime on first run)
+│   │       ├── config.md
+│   │       ├── topics.md
+│   │       ├── user_context.md
+│   │       └── hook_patterns.md
+│   └── threads-collector-old/       ← deprecated flat layout (v0.4.0, kept for reference)
+│       ├── SKILL.md
+│       ├── README.md
+│       ├── config.md
+│       ├── topics.md
+│       ├── user_context.md
+│       ├── hook_patterns.md
+│       ├── scroll-extraction.md
+│       ├── eval-hook-pattern.md
+│       ├── eval-relevance.md
+│       ├── eval-topic.md
+│       └── output-rendering.md
 └── README.md
 ```
 

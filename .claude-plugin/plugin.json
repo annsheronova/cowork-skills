@@ -1,7 +1,7 @@
 {
   "name": "cowork-skills",
-  "version": "0.5.1",
-  "description": "Cowork skills by Anna Sheronova. Ships: meeting-prep (meeting briefing notes from Calendar + Gmail + Notion + light web research), threads-collector (original flat layout), and threads-collector-v2 (same skill, skill-creator-compliant layout with references/ and assets/).",
+  "version": "0.6.0",
+  "description": "Cowork skills by Anna Sheronova. Ships: meeting-prep (briefing notes from Calendar + Gmail + Notion + light web research), threads-collector (scroll-then-evaluate workflow for Threads.com; skill-creator-compliant layout), and threads-collector-old (the previous flat layout, kept for reference).",
   "author": {
     "name": "Anna Sheronova",
     "email": "ann.sheronova@gmail.com"
