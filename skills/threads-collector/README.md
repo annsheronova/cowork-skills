@@ -2,29 +2,22 @@
 
 A Cowork skill that scrolls Threads (via Chrome) and catches posts matching criteria you define. On-demand — invoke it when you want. No API needed.
 
-## Install (3 steps)
+## Install
 
-1. Copy this whole `threads-collector/` folder into your Cowork skills directory. Default location:
-   ```
-   ~/.claude/skills/threads-collector/
-   ```
-   After copying, the structure should look like:
-   ```
-   ~/.claude/skills/threads-collector/
-     SKILL.md
-     config.md
-     README.md
-     hook_patterns.md
-   ```
+Install the parent plugin from the repo root — see [../../README.md](../../README.md). The skill will show up in Cowork once the plugin is installed. There's nothing to copy by hand.
 
-2. Copy `config.md` and `hook_patterns.md` to your working folder:
-   ```
-   ~/cowork/threads-collector/config.md
-   ~/cowork/threads-collector/library/hook_patterns.md
-   ```
-   The skills folder holds the *templates*; the cowork folder holds *your edited versions*. The skill reads from the cowork folder at runtime. `hook_patterns.md` is seeded with Threads 2026 research and grows with each run as top caught posts are appended.
+## First run
 
-3. Edit `~/cowork/threads-collector/config.md` and fill in your `my_topics` so the skill can classify caught posts against what you care about. Everything else has sensible defaults — tweak later as you learn what your feed surfaces.
+Open (or select) a folder in Cowork where you want the skill's config and library to live. A dedicated folder like `~/Documents/threads-research/` works well. Re-open the same folder each time you run the skill — that's how the library accumulates across runs.
+
+On first invocation the skill:
+
+1. Checks the Claude-in-Chrome extension is connected (stops if not).
+2. Resolves its runtime folder as `<your folder>/threads-collector/` and creates it.
+3. Seeds `<your folder>/threads-collector/config.md` from the plugin's bundled template, and stops with a message asking you to edit it.
+4. Seeds `<your folder>/threads-collector/library/hook_patterns.md` from the Q1 2026 research catalog so it's ready for observations to accumulate.
+
+Edit `<your folder>/threads-collector/config.md` — fill in your `my_handle` and your `my_topics`. Everything else has sensible defaults. Re-run the skill.
 
 ## Prerequisites
 
@@ -53,8 +46,10 @@ The skill will:
 
 ## Where the data lives
 
+Inside `<your Cowork folder>/threads-collector/`:
+
 ```
-~/cowork/threads-collector/
+threads-collector/
   config.md                         — your catch criteria (you edit)
   library/
     index.csv                       — one row per caught post, with classifications
@@ -134,7 +129,7 @@ The `hook_type` column maps to categories in `hook_patterns.md` — so after a m
 
 ## About `hook_patterns.md`
 
-The skill ships with a seeded catalog of 15 hook patterns grounded in Q1 2026 Threads research (creator interviews, algorithm breakdowns, Buffer/SociaVault data), plus 6 anti-patterns that underperform specifically on Threads. It lives at `~/cowork/threads-collector/library/hook_patterns.md`.
+The skill ships with a seeded catalog of 15 hook patterns grounded in Q1 2026 Threads research (creator interviews, algorithm breakdowns, Buffer/SociaVault data), plus 6 anti-patterns that underperform specifically on Threads. It lives at `<your Cowork folder>/threads-collector/library/hook_patterns.md`.
 
 Every run, the skill appends the top 3 caught posts (by reply_like_ratio) to the "Observed in the wild" section. Over time this becomes a personal catalog: instead of general "what works on social," you accumulate "what's working *in my niche* on Threads *this month*."
 

@@ -1,6 +1,6 @@
 ---
 name: threads-collector
-description: Scrolls Threads (threads.com) via Chrome and catches posts matching user-defined criteria in the config file. Use when user says "collect threads", "catch threads posts", "run threads collector", "swipe threads", "grab threads posts", "collect threads content", "watch threads trending", "catch trending threads posts", or similar. Reads ~/cowork/threads-collector/config.md for catch criteria. Supports For You, Following, Search, Profile, and Trending surfaces. No API used — pure Chrome automation.
+description: Scrolls Threads (threads.com) via Chrome and catches posts matching user-defined criteria in the config file. Use when user says "collect threads", "catch threads posts", "run threads collector", "swipe threads", "grab threads posts", "collect threads content", "watch threads trending", "catch trending threads posts", or similar. Reads <runtime_folder>/config.md for catch criteria. Supports For You, Following, Search, Profile, and Trending surfaces. No API used — pure Chrome automation.
 ---
 
 # Threads Collector
@@ -30,16 +30,22 @@ A skill that drives Chrome to Threads, scrolls the user's feed, and catches post
 Do NOT proceed to Step 1 if any of the checks below fail. Report the specific failure to the user and stop.
 
 **A. System prerequisites**
+
 1. Verify the Claude-in-Chrome extension is connected. If not: "The Claude-in-Chrome extension isn't connected. Open Chrome, install/enable it, and re-run." Stop.
-2. Bootstrap the runtime folder. This skill is installed via the `cowork-skills` Claude Code plugin, so the plugin's skill folder (the one containing this SKILL.md and the sibling `config.md` / `hook_patterns.md`) is managed by the plugin system and should be treated as read-only source of truth. User-editable runtime state lives at `~/cowork/threads-collector/`. On every invocation:
-   - If `~/cowork/threads-collector/config.md` does not exist: copy the sibling `config.md` from this skill's own folder to `~/cowork/threads-collector/config.md`. Tell the user: "First run detected — I've seeded your config at `~/cowork/threads-collector/config.md`. Edit it (at minimum fill in `my_topics`) before the next run." Then stop.
-   - If the library folder `~/cowork/threads-collector/library/` does not exist: create it, along with `library/index.csv` (with header row), `library/posts/`, and seed `library/hook_patterns.md` by copying this skill's sibling `hook_patterns.md`. This is a safe no-op if the user later runs — we only seed on absence, never overwrite.
+
+2. Resolve the runtime folder. This skill is installed via the `cowork-skills` Claude Code plugin. The plugin's skill folder (the one containing this SKILL.md and the sibling `config.md` / `hook_patterns.md`) is read-only source of truth. User-editable runtime state — the user's real config and the library of caught posts — lives **inside whichever folder is mounted in the current Cowork session**, NOT in any hardcoded `~/`-anchored path.
+   - If no Cowork folder is mounted, use the `request_cowork_directory` tool to ask the user to pick one. Suggested phrasing: "This skill stores your config and the library of caught posts inside a folder on your computer. Pick a folder — a dedicated one (e.g. `Documents/threads-research/`) or any Cowork project folder will work. Whichever folder you pick, re-open it the next time you run this skill so the library accumulates."
+   - Once a folder is mounted, set `<runtime_folder> = <mounted folder>/threads-collector/`. Create it if it doesn't exist. All subsequent file paths in this SKILL.md that say `<runtime_folder>/...` resolve relative to this path.
+
+3. Bootstrap `<runtime_folder>` on every invocation (idempotent — only seeds on absence, never overwrites):
+   - If `<runtime_folder>/config.md` does not exist: copy the plugin's bundled `config.md` (sibling of this SKILL.md) to `<runtime_folder>/config.md`. Tell the user: "First run detected — I've seeded your config at `<runtime_folder>/config.md`. Open it in your editor, fill in `my_topics` (at minimum), then re-run the skill." Then stop (do not proceed to scrolling on first-seed run).
+   - If `<runtime_folder>/library/` does not exist: create it, along with `library/index.csv` (with header row) and `library/posts/`. Seed `library/hook_patterns.md` by copying the plugin's bundled `hook_patterns.md`.
 
 **B. Config value validation — fail loudly on placeholders**
 
 After loading config (Step 1), before doing any scrolling, validate these fields have *real* values, not template placeholders:
 
-- `my_handle` must not be `@your_handle_here`, empty, or missing. If it is: stop with "Your config still has a placeholder for `my_handle`. Edit `~/cowork/threads-collector/config.md` and fill in your actual Threads handle, then re-run."
+- `my_handle` must not be `@your_handle_here`, empty, or missing. If it is: stop with "Your config still has a placeholder for `my_handle`. Edit `<runtime_folder>/config.md` and fill in your actual Threads handle, then re-run."
 - `my_topics` must have at least 1 entry that isn't the template default list. If empty or unchanged from the template: warn "Your `my_topics` is empty or still the default template list. Category classification won't be useful until you customize this. Proceed anyway? (y/N)"
 - If `surface: search:<query>` is set, `<query>` must be non-empty. Same for `profile:<handle>`.
 - If `surface: trending` and `trending_topics_allowlist` is empty, warn: "Trending mode with an empty allowlist will drill into ALL trending topics regardless of your niche. Proceed? (y/N)"
@@ -49,7 +55,7 @@ The point: fail loudly on placeholder values instead of silently running a usele
 **The run:**
 
 ### Step 1 — Read the config
-Load `~/cowork/threads-collector/config.md`. Parse the sections:
+Load `<runtime_folder>/config.md`. Parse the sections:
 - Surface to scroll
 - Max scroll cycles and max posts to collect
 - Engagement filters (min likes, min replies, min reposts, min reply_like_ratio)
@@ -77,7 +83,7 @@ Trending is a two-phase surface because Threads shows trending *topics*, not tre
 1. Navigate to https://threads.com/search (no query string — this is the trending landing page)
 2. Wait 2 seconds for the "Trending now" section to render
 3. Extract the list of trending topic names and their URLs. Each topic is typically a clickable chip/link. Capture as much as Threads shows — usually 10–15 topics.
-4. Write the discovered list to `~/cowork/threads-collector/library/trending-[YYYY-MM-DD-HHMM].json` as an audit trail (topic, url, discovered_at). This is useful later for "what was trending on [date]" queries.
+4. Write the discovered list to `<runtime_folder>/library/trending-[YYYY-MM-DD-HHMM].json` as an audit trail (topic, url, discovered_at). This is useful later for "what was trending on [date]" queries.
 
 **Phase 2b.2 — Filter the trending topics by user config:**
 Apply the config's `trending_topic_filters` rules to pick which trending topics to actually drill into:
@@ -141,7 +147,7 @@ The hook post's text (and ONLY the hook post's text) is what Step 6 classifies o
 
 The catch rule in Step 5 applies to the hook post's engagement counts. If the hook clears the threshold, the full thread is caught (not post-by-post).
 
-Deduplicate during capture: check `~/cowork/threads-collector/library/index.csv` for existing `post_url` entries. Skip any URL already in the library.
+Deduplicate during capture: check `<runtime_folder>/library/index.csv` for existing `post_url` entries. Skip any URL already in the library.
 
 ### Step 5 — Apply catch filters from config
 For each captured post, check against the config's filters in order:
@@ -152,7 +158,7 @@ For each captured post, check against the config's filters in order:
 4. **Content keyword filters**: if `required_keywords_any` is set, post_text must contain at least one → else drop. If `required_keywords_all` is set, post_text must contain all → else drop. If `excluded_keywords` set and post_text contains any → drop.
 5. **Engagement filter**: post must satisfy the catch rule in config. Default is "likes >= min_likes OR reply_like_ratio >= min_reply_like_ratio". Whatever rule the config specifies, apply it.
 
-Posts that pass all filters → "caught." Log drops with reason to `~/cowork/threads-collector/library/drops-[YYYY-MM-DD].csv` for the user's audit (one row per drop, with `post_url`, `reason`).
+Posts that pass all filters → "caught." Log drops with reason to `<runtime_folder>/library/drops-[YYYY-MM-DD].csv` for the user's audit (one row per drop, with `post_url`, `reason`).
 
 ### Step 6 — Classify caught posts
 For each caught post, using the post text alone (no external lookups), assign:
@@ -170,7 +176,7 @@ For each caught post, using the post text alone (no external lookups), assign:
 
 **Step 7a — Pre-write validation (the malformed-row gate)**
 
-For each caught + classified post, run this validation checklist BEFORE appending to index.csv. Any post failing validation does NOT go to the library — it goes to `~/cowork/threads-collector/library/malformed-[YYYY-MM-DD].csv` instead, so the library stays clean.
+For each caught + classified post, run this validation checklist BEFORE appending to index.csv. Any post failing validation does NOT go to the library — it goes to `<runtime_folder>/library/malformed-[YYYY-MM-DD].csv` instead, so the library stays clean.
 
 Validation rules (all must pass):
 - [ ] `author_handle` is non-empty and matches `^[a-zA-Z0-9._]+$` (no spaces, no @ prefix)
@@ -188,8 +194,8 @@ At the end of the run, if ≥20% of caught posts ended up in malformed-*.csv, fl
 **Step 7b — Write valid rows**
 
 For each validated post:
-- Append a row to `~/cowork/threads-collector/library/index.csv` with all the fields above.
-- Write a post markdown file to `~/cowork/threads-collector/library/posts/<author_handle>_<post_id>.md`.
+- Append a row to `<runtime_folder>/library/index.csv` with all the fields above.
+- Write a post markdown file to `<runtime_folder>/library/posts/<author_handle>_<post_id>.md`.
 
 Post markdown file structure:
 
@@ -241,7 +247,7 @@ If `thread_body_captured: hook_only`, only Part 1 section is written and a note 
 
 **Step 7c — Append to hook_patterns.md**
 
-After the CSV write, for the top 3 caught posts (by reply_like_ratio), append a row to `~/cowork/threads-collector/library/hook_patterns.md` under the "Observed in the wild" section:
+After the CSV write, for the top 3 caught posts (by reply_like_ratio), append a row to `<runtime_folder>/library/hook_patterns.md` under the "Observed in the wild" section:
 - Date
 - Author handle
 - First line (the hook, truncated to ~100 chars)
@@ -267,7 +273,7 @@ If anything looked unusual (DOM extraction struggled, config ambiguous, Chrome t
 
 ## Config file template
 
-If the user doesn't have one yet, create `~/cowork/threads-collector/config.md` with this content:
+If the user doesn't have one yet, create `<runtime_folder>/config.md` with this content:
 
 ```markdown
 # Threads Collector — My Catch Config
