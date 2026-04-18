@@ -1,68 +1,84 @@
 # Scroll + extraction reference
 
-Load this file only when executing Step 4 of SKILL.md. Contents cover what to extract from each visible post, how to handle multi-part threads, and how to dedupe.
+Load this file only when executing Step 4 of SKILL.md.
 
-## Skip replies first
+## The gate is likes only
 
-Threads surfaces reply-posts inline in feeds. Any post whose DOM indicates it's a reply to another user's post is dropped **immediately** (before any other extraction work). Check for a "Replying to @someuser" header or equivalent. Log the skip to `<runtime_folder>/library/drops-[date].csv` with reason `"reply_post (drop_replies=true)"`.
+Scroll-time filtering in v0.4.0 is deliberately minimal. For each visible post:
+
+1. Parse the likes count from the DOM.
+2. If `likes >= min_likes` → extract all fields below, append to the session CSV.
+3. Otherwise → skip silently. Don't log it. Don't drop-CSV it. We don't care about low-engagement posts, full stop.
+
+Topic relevance, hook pattern, primary/secondary topic assignment — all of that happens in Step 5 on the posts that passed this gate. Never here.
+
+**Hard always-skips** (before the likes check):
+- Reply-type posts (DOM header says "Replying to @x") — the skill is for standalone posts and same-author threads only.
+- Posts authored by `my_handle` — never catch yourself.
+- Ads / sponsored posts — labeled in the DOM.
+- Reposts — they're someone else's content showing up in your feed.
+
+These skips are silent. No logging.
 
 ## Per-post field extraction
 
-For each non-reply visible post, extract from the DOM:
+For each post that passed the gate, extract from the DOM:
 
 | Field | Source | Notes |
 |-------|--------|-------|
-| `post_url` | canonical threads.com URL | first post of the thread if `is_thread` |
+| `post_url` | canonical threads.com URL | the hook post if is_thread |
 | `author_handle` | `@handle` | strip the `@` prefix |
 | `author_display_name` | display name as rendered | |
-| `post_text` | the HOOK post's full text | expand "Show more" inline before capturing |
-| `timestamp_relative` | "2h", "1d" etc as shown | keep as-is for now; Step 6 parses if needed |
-| `likes`, `replies`, `reposts` | engagement counts | **integers** — parse "2.3K"/"2.3k"/"2,300" → `2300`. Hook post only, not summed across thread |
+| `post_text` | full visible text of the hook post | expand "Show more" inline before capturing |
+| `timestamp_relative` | "2h", "1d" etc as shown | keep as-is |
+| `likes`, `replies`, `reposts` | engagement counts | **integers** — parse "2.3K"/"2,300"/"1.1M" → int. Hook post only, not summed across thread |
 | `is_thread` | boolean | true if "Show more from [user]" / "Show thread" indicator present |
-| `thread_part_count` | integer or null | count of parts Threads reports; null for single posts. If unknowable without navigation, write the count actually captured |
-| `thread_body_captured` | enum | `n/a` (single), `hook_only`, `inline_parts`, or `full_expansion` |
+| `thread_part_count` | integer or null | count of parts Threads reports; null for single posts |
+| `thread_body` | string or null | if is_thread: all inline-visible parts joined with `\n\n---\n\n`. Null for single posts |
 | `has_media` | boolean | true if any image/video/carousel on the hook post |
 | `media_types` | list | `image`, `video`, `carousel`, or `none` |
 | `seen_in` | string from config | `for_you` / `following` / `search:<query>` / `profile:<handle>` / `trending:<topic>` |
 | `captured_at` | ISO timestamp | current run time |
 | `caught_from_trending_topic` | string or null | populated only when `surface=trending` |
 
-## Engagement parsing — be strict
+## Engagement parsing — strict
 
-Raw counts come as strings like "2.3K", "2,300", "1.1M". Parse to integer **at capture time**, not later:
+Raw counts come as strings like "2.3K", "2,300", "1.1M". Parse to integer at capture time:
 
 - `2.3K` → `2300`
 - `2,300` → `2300`
 - `1.1M` → `1100000`
-- empty / `null` / unparseable → leave as `null`, let Step 7 validation route to malformed-*.csv
+- empty / null / unparseable → skip the post entirely (don't guess)
 
-Do NOT pass "K"/"M" strings into the library. The validator catches these but cleaner to parse correctly upfront.
+If ≥20% of visible posts fail to parse likes, the DOM selector has drifted — flag in Step 6's run stats.
 
-## Thread handling
+## Thread body capture
 
-Behavior depends on `capture_thread_body` from config:
+Capture inline-visible parts only. No navigation to separate thread URLs (too slow, breaks scroll position).
 
-- **`hook_only`** — capture only the hook post's text into `post_text`. Set `thread_body_captured: hook_only`. No navigation. Fastest.
-- **`inline_only`** (default) — after capturing the hook, click the inline expander if one exists ("Show more from [user]", chevron, etc.). Capture additional parts that render inline, in order. Do NOT navigate to a separate thread URL. Set `thread_body_captured: inline_parts` and `thread_part_count` to the number captured. If the expander requires full navigation, skip further parts and treat as `hook_only` for this row.
-- **`full_expansion`** — navigate to the thread's full-view URL. Capture every part in order. Return to the feed and resume scrolling from where you left off. Set `thread_body_captured: full_expansion` and `thread_part_count` to the true total.
+- If a "Show more from [user]" expander renders inline without navigating away → click it, capture the revealed parts.
+- If the expander wants to navigate → skip the expansion, keep the hook text only, set `thread_body=null` and `thread_part_count=null`.
 
-**Important:** the hook post's text (and ONLY the hook post's text) is what Step 6 classifies on. Classification describes the hook, not the full thread — because the hook decides whether the rest gets read. Full parts live in the markdown file for later human reading.
+The likes/replies/reposts counts always describe the hook post only. Step 5 evaluations run on `post_text` (the hook), not `thread_body` — because the hook decides whether anyone reads the rest.
 
-**Catch filter applies to the hook's engagement counts.** If the hook clears thresholds, the full thread is caught (not post-by-post).
+## Deduplication — in-memory, session-scoped
 
-## Deduplication
+Session CSV is scratch. There's no persistent library to dedup against. But within a single run:
 
-Before appending any captured post to the library:
+- Keep an in-memory set of `post_url` values.
+- Before appending, check if `post_url` is already in the set.
+- If yes, skip silently.
 
-1. Read `<runtime_folder>/library/index.csv` once at the start of Step 4 (lazy-load it into memory — don't re-read per post).
-2. Check each post's `post_url` against the in-memory set.
-3. If `post_url` is already in the library, skip silently (don't log as a drop — it's not a drop, it's a dedup).
+This catches the common case where the same post renders twice during a single scroll (viewport overlap, Threads re-rendering, etc.).
 
-Report total dedup count in Step 8's run stats.
+## Scroll loop
 
-## Scroll loop — performance notes
+- Capture visible posts before scrolling, not after.
+- Wait `scroll_wait_seconds` (default 1.5s) after each scroll.
+- Stop conditions (any one triggers stop):
+  - Session CSV has `target_collected` rows (default 100)
+  - `max_scroll_cycles` reached (default 60)
+  - 3 consecutive scrolls with zero new post_urls appearing
+  - Any post's relative timestamp exceeds `stop_when_posts_older_than_hours` (default 48)
 
-- Capture visible posts before scrolling, not after. If you scroll first, earlier-visible posts may have left the viewport and DOM references go stale.
-- Wait `scroll_wait_seconds` (default 1.5s) after each scroll. Increase if you see lots of "no new posts" false-positives.
-- Detect "end of feed" via 3 consecutive scrolls with zero new post_urls appearing. Don't rely on a Threads-served "end of feed" marker — it's inconsistent.
-- Don't try to scroll past the `stop_when_posts_older_than_hours` boundary. Once you see a post older than the cutoff, stop scrolling (one old post can show up as an anomaly, so confirm with one more scroll before stopping — if the next viewport is also all-old, stop for real).
+Report which stop condition fired in Step 6's run stats.

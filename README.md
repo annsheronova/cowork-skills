@@ -21,11 +21,11 @@ Restart Cowork after install. The skills will appear in your sidebar and trigger
 
 ## Skills
 
-### [threads-collector](./skills/threads-collector/)
+### [threads-collector](./skills/threads-collector/) (v0.4.0)
 
-Scrolls Threads (threads.com) via the Claude-in-Chrome extension and catches posts matching user-defined criteria. Produces a structured CSV library plus individual markdown files per caught post, classified by category, template type, and hook type. Ships with a Q1 2026 Threads-specific hook pattern catalog.
+Scrolls Threads (threads.com) via the Claude-in-Chrome extension. Collects high-engagement posts into a session CSV with a single likes-only gate at scroll time, then evaluates each one in three sequential passes — hook pattern match, relevance score (1–100), primary/secondary topic. Renders the top 10 posts inline, plus any new topics and new hook patterns discovered during the run.
 
-**First-run setup:** no config files to edit. Trigger the skill and it walks you through a 30-second interview — 5 multiple-choice questions (intent, topics, feed, strictness, your handle) — then previews the plan before opening Chrome. The library of caught posts lives in whichever folder is mounted in your current Cowork session, under `<your folder>/threads-collector/`. Re-open the same folder next time so the library accumulates. Full docs in [skills/threads-collector/README.md](./skills/threads-collector/README.md).
+**First-run setup:** no config files to edit. Trigger the skill and it walks you through a 6-question interview (~1 minute) — intent, topics, surface, likes threshold, your handle, and a free-text context prompt for tuning relevance. Your topics list and hook playbook live in `<your folder>/threads-collector/` and grow on each run when you accept the Save gate. Session CSVs are scratch per run. Full docs in [skills/threads-collector/README.md](./skills/threads-collector/README.md).
 
 **Trigger phrases:** "collect threads", "catch threads posts", "run the threads collector".
 
@@ -54,10 +54,21 @@ Bump the version in `.claude-plugin/plugin.json`, then push. Installed users pic
 ```
 cowork-skills/
 ├── .claude-plugin/
-│   ├── plugin.json         ← plugin manifest
-│   └── marketplace.json    ← marketplace entry (lets the repo be added as a source)
+│   ├── plugin.json             ← plugin manifest
+│   └── marketplace.json        ← marketplace entry (lets the repo be added as a source)
 ├── skills/
-│   └── threads-collector/  ← first skill (SKILL.md, README.md, config.md, hook_patterns.md)
+│   └── threads-collector/
+│       ├── SKILL.md            ← thin orchestrator (steps 0–6)
+│       ├── README.md           ← user-facing docs
+│       ├── config.md           ← bundled template; copied to runtime on first run
+│       ├── topics.md           ← seed topic list (grows per user)
+│       ├── user_context.md     ← free-text placeholder
+│       ├── hook_patterns.md    ← seeded flat-table hook playbook (grows per user)
+│       ├── scroll-extraction.md   ← step 4 reference
+│       ├── eval-hook-pattern.md   ← step 5a reference
+│       ├── eval-relevance.md      ← step 5b reference
+│       ├── eval-topic.md          ← step 5c reference
+│       └── output-rendering.md    ← step 6 reference
 └── README.md
 ```
 

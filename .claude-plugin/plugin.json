@@ -1,7 +1,7 @@
 {
   "name": "cowork-skills",
-  "version": "0.3.0",
-  "description": "Anna's personal collection of Cowork skills. Currently ships threads-collector (scrolls Threads and catches posts matching user-defined criteria). Grows over time.",
+  "version": "0.4.0",
+  "description": "Anna's personal collection of Cowork skills. Currently ships threads-collector (scroll-then-evaluate: collects 100 high-engagement posts, scores relevance 1-100, matches against a growing hook playbook and topic list). Grows over time.",
   "author": {
     "name": "Anna Sheronova",
     "email": "ann.sheronova@gmail.com"
