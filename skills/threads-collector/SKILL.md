@@ -31,7 +31,7 @@ Do NOT proceed to Step 1 if any of the checks below fail. Report the specific fa
 
 **A. System prerequisites**
 1. Verify the Claude-in-Chrome extension is connected. If not: "The Claude-in-Chrome extension isn't connected. Open Chrome, install/enable it, and re-run." Stop.
-2. Bootstrap the runtime folder. This skill's source files (including this SKILL.md and the sibling `config.md` / `hook_patterns.md`) live under `~/.claude/skills/threads-collector/` — symlinked from the git-managed clone at `~/Dev/cowork-skills/` — and should be treated as read-only source of truth. User-editable runtime state lives at `~/cowork/threads-collector/`. On every invocation:
+2. Bootstrap the runtime folder. This skill is installed via the `cowork-skills` Claude Code plugin, so the plugin's skill folder (the one containing this SKILL.md and the sibling `config.md` / `hook_patterns.md`) is managed by the plugin system and should be treated as read-only source of truth. User-editable runtime state lives at `~/cowork/threads-collector/`. On every invocation:
    - If `~/cowork/threads-collector/config.md` does not exist: copy the sibling `config.md` from this skill's own folder to `~/cowork/threads-collector/config.md`. Tell the user: "First run detected — I've seeded your config at `~/cowork/threads-collector/config.md`. Edit it (at minimum fill in `my_topics`) before the next run." Then stop.
    - If the library folder `~/cowork/threads-collector/library/` does not exist: create it, along with `library/index.csv` (with header row), `library/posts/`, and seed `library/hook_patterns.md` by copying this skill's sibling `hook_patterns.md`. This is a safe no-op if the user later runs — we only seed on absence, never overwrite.
 
