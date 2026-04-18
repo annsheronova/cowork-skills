@@ -25,7 +25,7 @@ Restart Cowork after install. The skills will appear in your sidebar and trigger
 
 Scrolls Threads (threads.com) via the Claude-in-Chrome extension and catches posts matching user-defined criteria. Produces a structured CSV library plus individual markdown files per caught post, classified by category, template type, and hook type. Ships with a Q1 2026 Threads-specific hook pattern catalog.
 
-**First-run setup:** the skill uses whichever folder is mounted in your current Cowork session (if none is mounted, it will ask you to pick one). On first invocation it seeds `<your folder>/threads-collector/config.md` with a template — edit it and fill in `my_topics` before running again. The library of caught posts lives alongside the config, in the same folder. Re-open that folder in Cowork the next time you run the skill so the library accumulates. Full docs in [skills/threads-collector/README.md](./skills/threads-collector/README.md).
+**First-run setup:** no config files to edit. Trigger the skill and it walks you through a 30-second interview — 5 multiple-choice questions (intent, topics, feed, strictness, your handle) — then previews the plan before opening Chrome. The library of caught posts lives in whichever folder is mounted in your current Cowork session, under `<your folder>/threads-collector/`. Re-open the same folder next time so the library accumulates. Full docs in [skills/threads-collector/README.md](./skills/threads-collector/README.md).
 
 **Trigger phrases:** "collect threads", "catch threads posts", "run the threads collector".
 

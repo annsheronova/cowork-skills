@@ -1,6 +1,6 @@
 {
   "name": "cowork-skills",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Anna's personal collection of Cowork skills. Currently ships threads-collector (scrolls Threads and catches posts matching user-defined criteria). Grows over time.",
   "author": {
     "name": "Anna Sheronova",
